@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ConexaoBancoTest {
     @Test
-    public void deveConectar(){
+    public void deveConectar() {
         Connection con = ConexaoBanco.conectar();
         assertNotNull(con, "A conexão não deveria ser nula!");
     }

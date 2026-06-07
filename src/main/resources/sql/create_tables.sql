@@ -47,21 +47,11 @@ CREATE TABLE multa_aplicada(
     CONSTRAINT fk_rodovia FOREIGN KEY (id_rod) REFERENCES rodovia(id_rod)
 );
 
-
-
 CREATE TABLE item_multa(
-
-                           id_infra INT NOT NULL,
-
-                           id_multa INT NOT NULL,
-
-
-
-                           PRIMARY KEY(id_infra, id_multa),
-
-                           CONSTRAINT fk_rel_infracao FOREIGN KEY (id_infra) REFERENCES 	infracao(id_infra),
-
-                           CONSTRAINT fk_rel_multa FOREIGN KEY (id_multa) REFERENCES 		multa_aplicada(id_multa)
-
+   id_infra INT NOT NULL,
+   id_multa INT NOT NULL,
+   PRIMARY KEY(id_infra, id_multa),
+   CONSTRAINT fk_rel_infracao FOREIGN KEY (id_infra) REFERENCES infracao(id_infra),
+   CONSTRAINT fk_rel_multa FOREIGN KEY (id_multa) REFERENCES multa_aplicada(id_multa)
 );
 
