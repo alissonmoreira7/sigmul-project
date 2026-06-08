@@ -41,6 +41,7 @@ public class MotoristaDAO {
                 Motorista motorista = new Motorista();
                 motorista.setCnh(rs.getString("cnh_moto"));
                 motorista.setCpf(rs.getString("cpf_moto"));
+                motorista.setNome(rs.getString("nome_moto"));
                 motorista.setPontoAcumulado(rs.getInt("pontoAcumulados_moto"));
                 listaMotorista.add(motorista);
             }
@@ -48,5 +49,28 @@ public class MotoristaDAO {
             throw new RuntimeException("Erro ao listar motoristas: " + e.getMessage(), e);
         }
         return listaMotorista;
+    }
+
+    public void atualizarPontos(String cnh, int novosPontos) {
+
+        String sql = "UPDATE motorista SET pontoAcumulados_moto = ? WHERE cnh_moto = ?";
+
+        try (Connection conn = ConexaoBanco.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, novosPontos);
+            stmt.setString(2, cnh);
+
+            int linhasAfetadas = stmt.executeUpdate();
+
+            if (linhasAfetadas > 0) {
+                System.out.println("Pontos atualizados com sucesso!");
+            } else {
+                System.out.println("Nenhum motorista encontrado com essa CNH.");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar pontos: " + e.getMessage(), e);
+        }
     }
 }
