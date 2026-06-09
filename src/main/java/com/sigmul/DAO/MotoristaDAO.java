@@ -41,6 +41,7 @@ public class MotoristaDAO {
                 Motorista motorista = new Motorista();
                 motorista.setCnh(rs.getString("cnh_moto"));
                 motorista.setCpf(rs.getString("cpf_moto"));
+                motorista.setNome(rs.getString("nome_moto"));
                 motorista.setPontoAcumulado(rs.getInt("pontoAcumulados_moto"));
                 listaMotorista.add(motorista);
             }
