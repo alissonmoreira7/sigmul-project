@@ -24,6 +24,5 @@ public class PolicialDAO {
         } catch (SQLException e){
             throw new RuntimeException("Erro ao salvar policial: " + e.getMessage(), e);
         }
-
     }
 }
