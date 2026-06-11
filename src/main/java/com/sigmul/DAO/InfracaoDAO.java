@@ -11,7 +11,10 @@ import java.util.List;
 
 public class InfracaoDAO {
     public void salvar(Infracao infracao) {
-        String sql = "INSERT INTO infracao (id_infra, nome_infra, descricao_infra, valor_infra, pontos_infra) VALUES (?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO infracao (id_infra, nome_infra, descricao_infra, valor_infra, pontos_infra) 
+            VALUES (?, ?, ?, ?, ?
+        )""";
 
         try (Connection conn = ConexaoBanco.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
