@@ -9,32 +9,53 @@ import java.util.List;
 
 public class MultaAplicadaDAO {
 
-    public int salvar(MultaAplicada multa) {
+    // Salva a multa E o item_multa (infração) na mesma transação.
+    // Se uma das duas operações falhar, a outra é desfeita (rollback) —
+    // assim nunca fica uma multa sem infração ou vice-versa.
+    public int salvar(MultaAplicada multa, int idInfracao) {
 
-        String sql = "INSERT INTO multa_aplicada (matricula_pol, placa_vei, cnh_moto, id_rod, km_multa) VALUES (?, ?, ?, ?, ?)";
+        String sqlMulta = "INSERT INTO multa_aplicada (matricula_pol, placa_vei, cnh_moto, id_rod, km_multa) VALUES (?, ?, ?, ?, ?)";
+        String sqlItem = "INSERT INTO item_multa (id_infra, id_multa) VALUES (?, ?)";
 
-        try (Connection conn = ConexaoBanco.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = ConexaoBanco.conectar()) {
 
-            stmt.setInt(1, multa.getPolicial().getMatricula());
-            stmt.setString(2, multa.getVeiculo().getPlaca());
-            stmt.setString(3, multa.getMotorista().getCnh());
-            stmt.setInt(4, multa.getRodovia().getId());
-            stmt.setInt(5, multa.getKm());
+            // Desliga o autocommit: as duas inserções só são gravadas
+            // de fato no banco quando chamarmos conn.commit() no final.
+            conn.setAutoCommit(false);
 
-            stmt.executeUpdate();
+            int idMultaGerado;
 
-            ResultSet rs = stmt.getGeneratedKeys();
+            try (PreparedStatement stmtMulta = conn.prepareStatement(sqlMulta, Statement.RETURN_GENERATED_KEYS)) {
+                stmtMulta.setInt(1, multa.getPolicial().getMatricula());
+                stmtMulta.setString(2, multa.getVeiculo().getPlaca());
+                stmtMulta.setString(3, multa.getMotorista().getCnh());
+                stmtMulta.setInt(4, multa.getRodovia().getId());
+                stmtMulta.setInt(5, multa.getKmMulta());
+                stmtMulta.executeUpdate();
 
-            if (rs.next()) {
-                return rs.getInt(1);
+                try (ResultSet rs = stmtMulta.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        idMultaGerado = rs.getInt(1);
+                    } else {
+                        throw new RuntimeException("Não foi possível obter o ID da multa gerada.");
+                    }
+                }
             }
+
+            try (PreparedStatement stmtItem = conn.prepareStatement(sqlItem)) {
+                stmtItem.setInt(1, idInfracao);
+                stmtItem.setInt(2, idMultaGerado);
+                stmtItem.executeUpdate();
+            }
+
+            // Tudo certo: confirma as duas inserções de uma vez
+            conn.commit();
+            System.out.println("Multa registrada com sucesso! ID: " + idMultaGerado);
+            return idMultaGerado;
 
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao salvar multa: " + e.getMessage(), e);
         }
-
-        return -1;
     }
 
     public List<MultaAplicada> listarTodos() {
@@ -65,6 +86,7 @@ public class MultaAplicadaDAO {
             JOIN veiculo v ON m.placa_vei = v.placa_vei
             JOIN motorista mo ON m.cnh_moto = mo.cnh_moto
             JOIN rodovia r ON m.id_rod = r.id_rod
+            ORDER BY m.id_multa
         """;
 
         List<MultaAplicada> lista = new ArrayList<>();
@@ -101,7 +123,7 @@ public class MultaAplicadaDAO {
                         mo,
                         r,
                         rs.getInt("km_multa"),
-                        rs.getTimestamp("datahora_multa")
+                        rs.getTimestamp("datahora_multa").toLocalDateTime()
                 );
 
                 lista.add(multa);

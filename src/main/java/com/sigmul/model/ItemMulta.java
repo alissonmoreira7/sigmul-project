@@ -12,7 +12,7 @@ public class ItemMulta {
     }
 
     public Infracao getInfracao() { return infracao; }
-    public void setValorInfracao(Infracao infracao) { this.infracao = infracao; }
+    public void setInfracao(Infracao infracao) { this.infracao = infracao; }
 
     public MultaAplicada getMulta() { return multa; }
     public void setMulta(MultaAplicada multa) { this.multa = multa; }

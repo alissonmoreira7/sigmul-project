@@ -1,37 +1,37 @@
 package com.sigmul.model;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class MultaAplicada {
 
-    private int id;
+    private int idMulta;
     private Policial policial;
     private Veiculo veiculo;
     private Motorista motorista;
     private Rodovia rodovia;
-    private int km;
-    private Timestamp dataHora;
+    private int kmMulta;
+    private LocalDateTime dataHoraMulta;
 
     public MultaAplicada() {}
 
-    public MultaAplicada(int id, Policial policial, Veiculo veiculo,
-                         Motorista motorista, Rodovia rodovia,
-                         int km, Timestamp dataHora) {
-        this.id = id;
+    public MultaAplicada(int idMulta, Policial policial, Veiculo veiculo,
+                          Motorista motorista, Rodovia rodovia,
+                          int kmMulta, LocalDateTime dataHoraMulta) {
+        this.idMulta = idMulta;
         this.policial = policial;
         this.veiculo = veiculo;
         this.motorista = motorista;
         this.rodovia = rodovia;
-        this.km = km;
-        this.dataHora = dataHora;
+        this.kmMulta = kmMulta;
+        this.dataHoraMulta = dataHoraMulta;
     }
 
-    public int getId() {
-        return id;
+    public int getIdMulta() {
+        return idMulta;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setIdMulta(int idMulta) {
+        this.idMulta = idMulta;
     }
 
     public Policial getPolicial() {
@@ -66,19 +66,19 @@ public class MultaAplicada {
         this.rodovia = rodovia;
     }
 
-    public int getKm() {
-        return km;
+    public int getKmMulta() {
+        return kmMulta;
     }
 
-    public void setKm(int km) {
-        this.km = km;
+    public void setKmMulta(int kmMulta) {
+        this.kmMulta = kmMulta;
     }
 
-    public Timestamp getDataHora() {
-        return dataHora;
+    public LocalDateTime getDataHoraMulta() {
+        return dataHoraMulta;
     }
 
-    public void setDataHora(Timestamp dataHora) {
-        this.dataHora = dataHora;
+    public void setDataHoraMulta(LocalDateTime dataHoraMulta) {
+        this.dataHoraMulta = dataHoraMulta;
     }
 }
