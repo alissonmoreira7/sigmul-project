@@ -2,27 +2,37 @@ package com.sigmul.DAO;
 
 import com.sigmul.gestao_banco.ConexaoBanco;
 import com.sigmul.model.Policial;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PolicialDAO {
-    public void salvar(Policial policial){
-        String sql = "INSERT INTO policial (matricula_pol, nome_pol, cargo_pol) VALUES (?, ?, ?)";
+
+    public List<Policial> listarTodos() {
+
+        String sql = "SELECT * FROM policial";
+        List<Policial> lista = new ArrayList<>();
 
         try (Connection conn = ConexaoBanco.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-            stmt.setInt(1, policial.getMatricula());
-            stmt.setString(2, policial.getNome());
-            stmt.setString(3, policial.getCargo());
+            while (rs.next()) {
+                Policial p = new Policial();
+                p.setMatricula(rs.getInt("matricula_pol"));
+                p.setNome(rs.getString("nome_pol"));
+                p.setCargo(rs.getString("cargo_pol"));
+                lista.add(p);
+            }
 
-            stmt.executeUpdate();
-            System.out.println("Policial cadastrado com sucesso no banco!");
-
-        } catch (SQLException e){
-            throw new RuntimeException("Erro ao salvar policial: " + e.getMessage(), e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
+
+        return lista;
     }
 }

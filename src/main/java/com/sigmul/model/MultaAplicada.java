@@ -1,41 +1,84 @@
 package com.sigmul.model;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 public class MultaAplicada {
-    private int idMulta;
+
+    private int id;
     private Policial policial;
     private Veiculo veiculo;
     private Motorista motorista;
     private Rodovia rodovia;
-    private int kmMulta;
-    private LocalDateTime dataHoraMulta;
+    private int km;
+    private Timestamp dataHora;
 
-    public MultaAplicada() {};
+    public MultaAplicada() {}
 
-    public MultaAplicada(int idMulta, Veiculo veiculo, Motorista motorista, Rodovia rodovia, int kmMulta, LocalDateTime dataHoraMulta){
-        this.idMulta = idMulta;
+    public MultaAplicada(int id, Policial policial, Veiculo veiculo,
+                         Motorista motorista, Rodovia rodovia,
+                         int km, Timestamp dataHora) {
+        this.id = id;
+        this.policial = policial;
         this.veiculo = veiculo;
         this.motorista = motorista;
         this.rodovia = rodovia;
-        this.kmMulta = kmMulta;
-        this.dataHoraMulta = dataHoraMulta;
+        this.km = km;
+        this.dataHora = dataHora;
     }
 
+    public int getId() {
+        return id;
+    }
 
-    public int getIdMulta() { return idMulta; }
-    public void setIdMulta(int idMulta) { this.idMulta = idMulta; }
-    public Policial getPolicial() { return policial; }
-    public void setPolicial(Policial policial) { this.policial = policial; }
-    public Veiculo getVeiculo() { return veiculo; }
-    public void setVeiculo(Veiculo veiculo) { this.veiculo = veiculo; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public Motorista getMotorista() { return motorista; }
-    public void setMotorista(Motorista motorista) { this.motorista = motorista; }
-    public Rodovia getRodovia() { return rodovia; }
-    public void setRodovia(Rodovia rodovia) { this.rodovia = rodovia; }
-    public int getKmMulta() { return kmMulta; }
-    public void setKmMulta(int kmMulta) { this.kmMulta = kmMulta; }
-    public LocalDateTime getDataHoraMulta() { return dataHoraMulta; }
-    public void setDataHoraMulta(LocalDateTime dataHoraMulta) { this.dataHoraMulta = dataHoraMulta; }
+    public Policial getPolicial() {
+        return policial;
+    }
+
+    public void setPolicial(Policial policial) {
+        this.policial = policial;
+    }
+
+    public Veiculo getVeiculo() {
+        return veiculo;
+    }
+
+    public void setVeiculo(Veiculo veiculo) {
+        this.veiculo = veiculo;
+    }
+
+    public Motorista getMotorista() {
+        return motorista;
+    }
+
+    public void setMotorista(Motorista motorista) {
+        this.motorista = motorista;
+    }
+
+    public Rodovia getRodovia() {
+        return rodovia;
+    }
+
+    public void setRodovia(Rodovia rodovia) {
+        this.rodovia = rodovia;
+    }
+
+    public int getKm() {
+        return km;
+    }
+
+    public void setKm(int km) {
+        this.km = km;
+    }
+
+    public Timestamp getDataHora() {
+        return dataHora;
+    }
+
+    public void setDataHora(Timestamp dataHora) {
+        this.dataHora = dataHora;
+    }
 }

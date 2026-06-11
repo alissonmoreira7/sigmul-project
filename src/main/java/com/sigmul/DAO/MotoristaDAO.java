@@ -73,4 +73,26 @@ public class MotoristaDAO {
             throw new RuntimeException("Erro ao atualizar pontos: " + e.getMessage(), e);
         }
     }
+
+    public void deletar(String cnh) {
+
+        String sql = "DELETE FROM motorista WHERE cnh_moto = ?";
+
+        try (Connection conn = ConexaoBanco.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cnh);
+
+            int linhasAfetadas = stmt.executeUpdate();
+
+            if (linhasAfetadas > 0) {
+                System.out.println("Motorista deletado com sucesso!");
+            } else {
+                System.out.println("Nenhum motorista encontrado com essa CNH.");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao deletar motorista: " + e.getMessage(), e);
+        }
+    }
 }

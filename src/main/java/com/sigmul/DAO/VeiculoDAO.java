@@ -103,4 +103,28 @@ public class VeiculoDAO {
             throw new RuntimeException("Erro ao deletar veículo: " + e.getMessage(), e);
         }
     }
+
+    public Veiculo buscarPorPlaca(String placa) {
+
+        String sql = "SELECT * FROM veiculo WHERE placa_vei = ?";
+
+        try (Connection conn = ConexaoBanco.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, placa);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Veiculo v = new Veiculo();
+                v.setPlaca(rs.getString("placa_vei"));
+                return v;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
+    }
 }
