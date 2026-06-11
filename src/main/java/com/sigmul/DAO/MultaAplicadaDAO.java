@@ -9,12 +9,7 @@ import java.util.List;
 
 public class MultaAplicadaDAO {
     public void salvar(MultaAplicada multaAplicada){
-        String sql = """
-            INSERT INTO multa_aplicada 
-                (matricula_pol, placa_vei, cnh_moto, id_rod, km_multa, datahora_multa)
-            VALUES 
-                (?, ?, ?, ?, ?, ?)
-        """;
+        String sql = "CALL public.sp_cadastrar_multa(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexaoBanco.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -98,8 +93,6 @@ public class MultaAplicadaDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao listar multas: " + e.getMessage(), e);
         }
-
         return lista;
     }
-
 }
