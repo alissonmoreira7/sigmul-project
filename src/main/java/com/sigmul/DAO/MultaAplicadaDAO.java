@@ -58,6 +58,42 @@ public class MultaAplicadaDAO {
         }
     }
 
+    //Funcion Calculadora de Multas
+    public double calcularTotalMultas(String cnh) {
+
+        String sql = "SELECT calcular_total_multas(?)";
+
+        try (Connection conn = ConexaoBanco.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cnh);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble(1); // pega o valor retornado pela function
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao executar function: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    //Procedure atualizadora de pontos
+    public void atualizarPontosMotorista(String cnh, int pontos) {
+        try (Connection conn = ConexaoBanco.conectar();
+             CallableStatement cs = conn.prepareCall("{call atualizar_pontos_motorista(?, ?)}")) {
+
+            cs.setString(1, cnh);
+            cs.setInt(2, pontos);
+            cs.execute();
+            System.out.println("Pontos atualizados via Procedure!");
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao executar procedure: " + e.getMessage(), e);
+        }
+    }
+
     public List<MultaAplicada> listarTodos() {
 
         String sql = """

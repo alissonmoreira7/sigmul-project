@@ -12,7 +12,7 @@ import java.util.List;
 public class InfracaoDAO {
     public void salvar(Infracao infracao) {
         String sql = """
-            INSERT INTO infracao (id_infra, nome_infra, descricao_infra, valor_infra, pontos_infra) 
+            INSERT INTO infracao (id_infra, nome_infra, descricacao_infra, valor_infra, pontos_infra) 
             VALUES (?, ?, ?, ?, ?
         )""";
 
@@ -45,7 +45,7 @@ public class InfracaoDAO {
                 Infracao infracao = new Infracao();
                 infracao.setId(rs.getInt("id_infra"));
                 infracao.setNome(rs.getString("nome_infra"));
-                infracao.setDescricao(rs.getString("descricao_infra"));
+                infracao.setDescricao(rs.getString("descricacao_infra"));
                 infracao.setValorInfracao(rs.getDouble("valor_infra"));
                 infracao.setPontosInfracao(rs.getInt("pontos_infra"));
                 listaInfracao.add(infracao);
@@ -70,7 +70,7 @@ public class InfracaoDAO {
                     Infracao infracao = new Infracao();
                     infracao.setId(rs.getInt("id_infra"));
                     infracao.setNome(rs.getString("nome_infra"));
-                    infracao.setDescricao(rs.getString("descricao_infra"));
+                    infracao.setDescricao(rs.getString("descricacao_infra"));
                     infracao.setValorInfracao(rs.getDouble("valor_infra"));
                     infracao.setPontosInfracao(rs.getInt("pontos_infra"));
                     return infracao;
@@ -84,7 +84,7 @@ public class InfracaoDAO {
     }
 
     public void atualizar(Infracao infracao) {
-        String sql = "UPDATE infracao SET nome_infra = ?, descricao_infra = ?, valor_infra = ?, pontos_infra = ? WHERE id_infra = ?";
+        String sql = "UPDATE infracao SET nome_infra = ?, descricacao_infra = ?, valor_infra = ?, pontos_infra = ? WHERE id_infra = ?";
 
         try (Connection conn = ConexaoBanco.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

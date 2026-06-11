@@ -49,6 +49,7 @@ public class MenuMulta {
         System.out.println("\n--- Registrar Nova Multa ---");
 
         Policial policial = selecionarPolicial();
+        if (policial == null) return;
 
         Veiculo veiculo = selecionarVeiculo();
         if (veiculo == null) return;
@@ -155,13 +156,35 @@ public class MenuMulta {
         }
     }
 
+    // Antes essa funcao apenas pedia a matricula e criava um Policial
+    // "fake" so com esse numero, sem checar se ele existe no banco.
+    // Agora listamos os policiais reais e o usuario escolhe pelo numero,
+    // igual ja fazemos com veiculo, rodovia e infracao.
     private Policial selecionarPolicial() {
-        System.out.print("Matrícula do policial: ");
-        int matricula = LeitorEntrada.lerInt();
+        System.out.println("\nPoliciais cadastrados:");
 
-        Policial policial = new Policial();
-        policial.setMatricula(matricula);
-        return policial;
+        List<Policial> policiais = policialDAO.listarTodos();
+
+        if (policiais.isEmpty()) {
+            System.out.println("Nenhum policial cadastrado. Cadastre um policial primeiro.");
+            return null;
+        }
+
+        for (int i = 0; i < policiais.size(); i++) {
+            Policial p = policiais.get(i);
+            System.out.println((i + 1) + ". " + p.getNome() + " - " + p.getCargo()
+                    + " | Matrícula: " + p.getMatricula());
+        }
+
+        System.out.print("Escolha o número do policial: ");
+        int escolha = LeitorEntrada.lerInt();
+
+        if (escolha < 1 || escolha > policiais.size()) {
+            System.out.println("Opção inválida.");
+            return null;
+        }
+
+        return policiais.get(escolha - 1);
     }
 
     private Veiculo selecionarVeiculo() {
