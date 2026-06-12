@@ -5,7 +5,10 @@ import com.sigmul.model.*;
 import com.sigmul.LeitorEntrada.LeitorEntrada;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MenuMulta {
 
@@ -26,6 +29,7 @@ public class MenuMulta {
             System.out.println("3. Buscar multa por ID");
             System.out.println("4. Buscar multas por motorista (CPF)");
             System.out.println("5. Buscar multas por placa");
+            System.out.println("6. Excluir multa");   // <- NOVO
             System.out.println("0. Voltar");
             System.out.println("==============================");
             System.out.print("Escolha uma opção: ");
@@ -38,6 +42,7 @@ public class MenuMulta {
                 case 3 -> buscarPorId();
                 case 4 -> buscarPorMotorista();
                 case 5 -> buscarPorPlaca();
+                case 6 -> excluirMulta();   // <- NOVO
                 case 0 -> System.out.println("Voltando ao menu principal...");
                 default -> System.out.println("Opção inválida! Digite um número do menu.");
             }
@@ -90,7 +95,31 @@ public class MenuMulta {
 
         multaDAO.salvar(multa, infracao.getId());
     }
+    private void excluirMulta() {
+        System.out.println("\n--- Excluir Multa ---");
+        System.out.print("ID da multa a excluir: ");
+        int id = LeitorEntrada.lerInt();
 
+        VwMultaAplicada multa = vwMultaDAO.buscarPorId(id);
+
+        if (multa == null) {
+            System.out.println("Nenhuma multa encontrada com o ID " + id + ".");
+            return;
+        }
+
+        System.out.println("\n--- Multa encontrada ---");
+        exibirLinhaMulta(multa);
+
+        System.out.print("\nConfirmar exclusão? (1 = Sim / 0 = Cancelar): ");
+        int confirma = LeitorEntrada.lerInt();
+
+        if (confirma != 1) {
+            System.out.println("Exclusão cancelada.");
+            return;
+        }
+
+        multaDAO.deletar(id);
+    }
     private void listarTodas() {
         System.out.println("\n--- Lista de Multas ---");
 
@@ -101,11 +130,17 @@ public class MenuMulta {
             return;
         }
 
+        // Agrupa as infracoes de uma mesma multa para nao repetir o bloco inteiro
+        Map<Integer, List<VwMultaAplicada>> agrupadas = new LinkedHashMap<>();
         for (VwMultaAplicada m : multas) {
-            exibirLinhaMulta(m);
+            agrupadas.computeIfAbsent(m.getIdMulta(), k -> new ArrayList<>()).add(m);
         }
 
-        System.out.println("Total: " + multas.size() + " multa(s).");
+        for (List<VwMultaAplicada> grupo : agrupadas.values()) {
+            exibirGrupoMulta(grupo);
+        }
+
+        System.out.println("Total: " + agrupadas.size() + " multa(s).");
     }
 
     private void buscarPorId() {
@@ -267,6 +302,21 @@ public class MenuMulta {
         }
 
         return infracoes.get(escolha - 1);
+    }
+
+    private void exibirGrupoMulta(List<VwMultaAplicada> grupo) {
+        VwMultaAplicada base = grupo.get(0);
+        System.out.println("------------------------------------");
+        System.out.println("ID       : " + base.getIdMulta());
+        System.out.println("Data/Hora: " + base.getDataHora());
+        System.out.println("Motorista: " + base.getMotorista() + " | CPF: " + base.getCpfMoto());
+        System.out.println("Veiculo  : " + base.getPlaca() + " - " + base.getVeiculo());
+        System.out.println("Rodovia  : " + base.getRodovia());
+        System.out.println("Policial : " + base.getPolicial());
+        System.out.println("Infracoes:");
+        for (VwMultaAplicada m : grupo) {
+            System.out.printf("  - %s | R$ %.2f%n", m.getInfracao(), m.getValor());
+        }
     }
 
     private void exibirLinhaMulta(VwMultaAplicada m) {

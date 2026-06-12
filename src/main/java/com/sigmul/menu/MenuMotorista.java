@@ -4,6 +4,7 @@ import com.sigmul.DAO.MotoristaDAO;
 import com.sigmul.DAO.MultaAplicadaDAO;
 import com.sigmul.LeitorEntrada.LeitorEntrada;
 import com.sigmul.model.Motorista;
+import com.sigmul.model.ResumoMotorista;
 
 import java.util.List;
 
@@ -18,8 +19,9 @@ public class MenuMotorista {
         do {
             System.out.println("\n--- Gerenciar Motoristas ---");
             System.out.println("1. Listar motoristas");
-            System.out.println("2. Atualizar pontos (via Procedure)");
-            System.out.println("3. Ver total de multas de um motorista (via Function)");
+            System.out.println("2. Atualizar pontos");
+            System.out.println("3. Ver total de multas de um motorista");
+            System.out.println("4. Resumo completo do motorista");
             System.out.println("0. Voltar");
             System.out.print("Escolha: ");
 
@@ -29,6 +31,7 @@ public class MenuMotorista {
                 case 1 -> listar();
                 case 2 -> atualizarPontos();
                 case 3 -> totalMultas();
+                case 4 -> resumoMotorista();
                 case 0 -> System.out.println("Voltando...");
                 default -> System.out.println("Opção inválida!");
             }
@@ -75,5 +78,27 @@ public class MenuMotorista {
 
         double total = multaDAO.calcularTotalMultas(cnh);
         System.out.printf("Total acumulado em multas: R$ %.2f%n", total);
+    }
+
+    private static void resumoMotorista() {
+        System.out.println("\n--- Resumo Completo do Motorista ---");
+
+        System.out.print("CNH do motorista: ");
+        String cnh = LeitorEntrada.lerDocumento11Digitos("CNH");
+
+        ResumoMotorista r = multaDAO.resumoMotorista(cnh);
+
+        if (r == null) {
+            System.out.println("Motorista sem multas registradas ou CNH não encontrada.");
+            return;
+        }
+
+        System.out.println("====================================");
+        System.out.println("Motorista            : " + r.getNome());
+        System.out.println("Total de multas      : " + r.getTotalMultas());
+        System.out.printf ("Valor total          : R$ %.2f%n", r.getValorTotal());
+        System.out.println("Pontos acumulados    : " + r.getPontosTotais());
+        System.out.println("Infração mais cometida: " + r.getInfracaoMaisComum());
+        System.out.println("====================================");
     }
 }

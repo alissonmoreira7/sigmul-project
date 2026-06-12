@@ -9,9 +9,6 @@ import java.util.List;
 
 public class MultaAplicadaDAO {
 
-    // Salva a multa E o item_multa (infração) na mesma transação.
-    // Se uma das duas operações falhar, a outra é desfeita (rollback) —
-    // assim nunca fica uma multa sem infração ou vice-versa.
     public int salvar(MultaAplicada multa, int idInfracao) {
 
         String sqlMulta = "INSERT INTO multa_aplicada (matricula_pol, placa_vei, cnh_moto, id_rod, km_multa) VALUES (?, ?, ?, ?, ?)";
@@ -19,8 +16,6 @@ public class MultaAplicadaDAO {
 
         try (Connection conn = ConexaoBanco.conectar()) {
 
-            // Desliga o autocommit: as duas inserções só são gravadas
-            // de fato no banco quando chamarmos conn.commit() no final.
             conn.setAutoCommit(false);
 
             int idMultaGerado;
@@ -79,6 +74,33 @@ public class MultaAplicadaDAO {
         return 0;
     }
 
+    public ResumoMotorista resumoMotorista(String cnh) {
+
+        String sql = "SELECT * FROM resumo_motorista(?)";
+
+        try (Connection conn = ConexaoBanco.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cnh);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new ResumoMotorista(
+                        rs.getString("nome"),
+                        rs.getLong("total_multas"),
+                        rs.getDouble("valor_total"),
+                        rs.getInt("pontos_totais"),
+                        rs.getString("infracao_mais_comum")
+                );
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao executar function resumo_motorista: " + e.getMessage(), e);
+        }
+
+        return null; // motorista sem multas
+    }
+
     //Procedure atualizadora de pontos
     public void atualizarPontosMotorista(String cnh, int pontos) {
         try (Connection conn = ConexaoBanco.conectar();
@@ -97,7 +119,7 @@ public class MultaAplicadaDAO {
     public List<MultaAplicada> listarTodos() {
 
         String sql = """
-            SELECT 
+            SELECT DISTINCT 
                 m.id_multa,
                 m.km_multa,
                 m.datahora_multa,
@@ -170,5 +192,35 @@ public class MultaAplicadaDAO {
         }
 
         return lista;
+    }
+    public void deletar(int idMulta) {
+        String sqlItens = "DELETE FROM item_multa WHERE id_multa = ?";
+        String sqlMulta = "DELETE FROM multa_aplicada WHERE id_multa = ?";
+
+        try (Connection conn = ConexaoBanco.conectar()) {
+
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmtItens = conn.prepareStatement(sqlItens)) {
+                stmtItens.setInt(1, idMulta);
+                stmtItens.executeUpdate();
+            }
+
+            try (PreparedStatement stmtMulta = conn.prepareStatement(sqlMulta)) {
+                stmtMulta.setInt(1, idMulta);
+                int linhasAfetadas = stmtMulta.executeUpdate();
+
+                if (linhasAfetadas > 0) {
+                    conn.commit();
+                    System.out.println("Multa deletada com sucesso!");
+                } else {
+                    conn.rollback();
+                    System.out.println("Nenhuma multa encontrada com o ID: " + idMulta);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao deletar multa: " + e.getMessage(), e);
+        }
     }
 }
