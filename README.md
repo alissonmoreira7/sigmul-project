@@ -358,14 +358,17 @@ Usada no menu "Gerenciar Motoristas → Atualizar pontos (via Procedure)".
 - Gerenciamento seguro de credenciais com variáveis de ambiente via Dotenv
 
 ### Dificuldades encontradas
-- Conflitos de merge no Git durante o desenvolvimento em dupla, que quebraram arquivos Java e exigiram resolução manual
-- Incompatibilidade entre versões do JDK (17 vs 25) que impediu a compilação inicial
-- Erros de FK ao atualizar dados relacionados entre tabelas (ex: CPF referenciado em `veiculo`)
+- Curva de aprendizado no uso do JDBC, principalmente no controle manual de conexões, `PreparedStatement` e transações (`commit`/`rollback`) em operações compostas
+- Conflitos de versão do projeto no Git durante o desenvolvimento em dupla, com divergências de dependências e configuração que quebraram arquivos e exigiram resolução manual
+- Dificuldade na criação e no uso correto de Functions e Procedures no PostgreSQL, especialmente na definição de parâmetros, tipos de retorno e na chamada via `CallableStatement`/`PreparedStatement` a partir do Java
+- Exclusão de registros sem qualquer histórico ou log: ao remover uma multa ou item relacionado, a informação se perde por completo do banco, o que é problemático tratando-se de dados de fiscalização que precisam ser auditáveis
 
 ### Possíveis melhorias
 - Interface gráfica com JavaFX ou frontend web conectado via API REST
 - Procedure `sp_cadastrar_multa` integrada ao fluxo Java em substituição ao INSERT manual
 - Relatórios em PDF com histórico de multas por motorista
+- Identificação do veículo pela placa em vez do ID interno do banco, tornando a busca mais natural para o usuário
+- Permitir o registro de mais de uma infração na mesma multa diretamente pelo fluxo do menu, aproveitando a estrutura já existente de `item_multa`
 
 ---
 

@@ -101,7 +101,6 @@ public class MultaAplicadaDAO {
         return null; // motorista sem multas
     }
 
-    //Procedure atualizadora de pontos
     public void atualizarPontosMotorista(String cnh, int pontos) {
         try (Connection conn = ConexaoBanco.conectar();
              CallableStatement cs = conn.prepareCall("{call atualizar_pontos_motorista(?, ?)}")) {
