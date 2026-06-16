@@ -13,6 +13,8 @@
 
 ### 2.1 Modelo de Dados
 
+![Diagrama ER — SigMul](images_readme/sigmul_er_diagram.png)
+
 O banco é composto por **7 entidades**, todas com relacionamentos definidos por chaves primárias e estrangeiras:
 
 | Entidade | Descrição |
@@ -119,67 +121,66 @@ SELECT
     r.codbr_rod       AS rodovia,
     pol.nome_pol      AS policial
 FROM item_multa im
-JOIN infracao       inf ON inf.id_infra      = im.id_infra
-JOIN multa_aplicada ma  ON ma.id_multa       = im.id_multa
-JOIN motorista      mot ON mot.cnh_moto      = ma.cnh_moto
-JOIN veiculo        vei ON vei.placa_vei     = ma.placa_vei
-JOIN rodovia        r   ON r.id_rod          = ma.id_rod
-JOIN policial       pol ON pol.matricula_pol = ma.matricula_pol;
+         JOIN infracao       inf ON inf.id_infra      = im.id_infra
+         JOIN multa_aplicada ma  ON ma.id_multa       = im.id_multa
+         JOIN motorista      mot ON mot.cnh_moto      = ma.cnh_moto
+         JOIN veiculo        vei ON vei.placa_vei     = ma.placa_vei
+         JOIN rodovia        r   ON r.id_rod          = ma.id_rod
+         JOIN policial       pol ON pol.matricula_pol = ma.matricula_pol;
 ```
 
-**Procedure — `sp_cadastrar_multa`:**
+**Procedure — `atualizar_pontos_motorista`:**
 
-Insere a multa, vincula a infração e atualiza automaticamente os pontos do motorista em uma única transação.
+Recebe a CNH do motorista e um número de pontos, e atualiza diretamente o campo `pontoacumulados_moto` no banco.
 
 ```sql
-CREATE OR REPLACE PROCEDURE public.sp_cadastrar_multa(
-    IN p_matricula_pol INTEGER,
-    IN p_placa_vei     VARCHAR,
-    IN p_cnh_moto      VARCHAR,
-    IN p_id_rod        INTEGER,
-    IN p_km_multa      INTEGER,
-    IN p_datahora      TIMESTAMP,
-    IN p_id_infra      INTEGER
-)
+CREATE OR REPLACE PROCEDURE public.atualizar_pontos_motorista(p_cnh VARCHAR, p_pontos INT)
 LANGUAGE plpgsql AS $$
-DECLARE
-    v_id_multa     INTEGER;
-    v_pontos_infra INTEGER;
 BEGIN
-    INSERT INTO multa_aplicada (matricula_pol, placa_vei, cnh_moto, id_rod, km_multa, datahora_multa)
-    VALUES (p_matricula_pol, p_placa_vei, p_cnh_moto, p_id_rod, p_km_multa, p_datahora)
-    RETURNING id_multa INTO v_id_multa;
-
-    INSERT INTO item_multa (id_infra, id_multa) VALUES (p_id_infra, v_id_multa);
-
-    SELECT pontos_infra INTO v_pontos_infra FROM infracao WHERE id_infra = p_id_infra;
-
     UPDATE motorista
-    SET pontoacumulados_moto = pontoacumulados_moto + v_pontos_infra
-    WHERE cnh_moto = p_cnh_moto;
-EXCEPTION
-    WHEN OTHERS THEN RAISE EXCEPTION 'Erro ao cadastrar multa: %', SQLERRM;
+    SET pontoacumulados_moto = pontoacumulados_moto + p_pontos
+    WHERE cnh_moto = p_cnh;
 END;
 $$;
 ```
 
-**Function — `calcular_total_multas`:**
+**Function — `resumo_motorista`:**
 
-Recebe a CNH de um motorista e retorna o valor total acumulado em multas.
+Recebe a CNH de um motorista e retorna uma tabela com nome, total de multas, valor total acumulado, pontos totais e a infração mais frequente — reunindo em um único cálculo um resumo completo do histórico do condutor.
 
 ```sql
-CREATE OR REPLACE FUNCTION public.calcular_total_multas(p_cnh VARCHAR)
-RETURNS NUMERIC
+CREATE OR REPLACE FUNCTION public.resumo_motorista(p_cnh character varying)
+RETURNS TABLE(
+    nome character varying,
+    total_multas bigint,
+    valor_total numeric,
+    pontos_totais integer,
+    infracao_mais_comum character varying
+)
 LANGUAGE plpgsql AS $$
-DECLARE
-    total NUMERIC;
 BEGIN
-    SELECT COALESCE(SUM(i.valor_infra), 0) INTO total
-    FROM item_multa im
-    JOIN infracao i ON im.id_infra = i.id_infra
-    JOIN multa_aplicada m ON im.id_multa = m.id_multa
-    WHERE m.cnh_moto = p_cnh;
-    RETURN total;
+    RETURN QUERY
+    SELECT
+        mo.nome_moto,
+        COUNT(DISTINCT ma.id_multa),
+        SUM(inf.valor_infra),
+        mo.pontoacumulados_moto,
+        (
+            SELECT inf2.nome_infra
+            FROM item_multa im2
+                JOIN multa_aplicada ma2 ON ma2.id_multa = im2.id_multa
+                JOIN infracao inf2       ON inf2.id_infra = im2.id_infra
+            WHERE ma2.cnh_moto = p_cnh
+            GROUP BY inf2.nome_infra
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        )
+    FROM motorista mo
+        JOIN multa_aplicada ma ON ma.cnh_moto = mo.cnh_moto
+        JOIN item_multa im     ON im.id_multa  = ma.id_multa
+        JOIN infracao inf      ON inf.id_infra = im.id_infra
+    WHERE mo.cnh_moto = p_cnh
+    GROUP BY mo.nome_moto, mo.pontoacumulados_moto;
 END;
 $$;
 ```
@@ -314,19 +315,19 @@ ResultSet rs = stmt.executeQuery();
 
 ## 4. Recursos Avançados
 
-### 4.1 Function — `calcular_total_multas`
+### 4.1 Function — `resumo_motorista`
 
-Recebe a CNH do motorista e retorna o valor total acumulado em multas. É chamada no Java via `SELECT` comum:
+Recebe a CNH do motorista e retorna uma tabela com nome, total de multas, valor acumulado, pontos totais e a infração mais frequente. Reúne em um único cálculo SQL todo o histórico do condutor. É chamada no Java via `SELECT` comum:
 
 ```java
-String sql = "SELECT calcular_total_multas(?)";
+String sql = "SELECT * FROM resumo_motorista(?)";
 PreparedStatement stmt = conn.prepareStatement(sql);
 stmt.setString(1, cnh);
 ResultSet rs = stmt.executeQuery();
-double total = rs.getDouble(1);
+// rs contém: nome, total_multas, valor_total, pontos_totais, infracao_mais_comum
 ```
 
-Usada no menu "Gerenciar Motoristas → Ver total de multas".
+Usada no menu **"Gerenciar Motoristas → Ver resumo do motorista"**.
 
 ### 4.2 Procedure — `atualizar_pontos_motorista`
 
@@ -339,7 +340,7 @@ cs.setInt(2, pontos);
 cs.execute();
 ```
 
-Usada no menu "Gerenciar Motoristas → Atualizar pontos (via Procedure)".
+Usada no menu **"Gerenciar Motoristas → Atualizar pontos (via Procedure)"**.
 
 ### 4.3 Regras de Negócio
 
@@ -365,10 +366,10 @@ Usada no menu "Gerenciar Motoristas → Atualizar pontos (via Procedure)".
 
 ### Possíveis melhorias
 - Interface gráfica com JavaFX ou frontend web conectado via API REST
-- Procedure `sp_cadastrar_multa` integrada ao fluxo Java em substituição ao INSERT manual
 - Relatórios em PDF com histórico de multas por motorista
 - Identificação do veículo pela placa em vez do ID interno do banco, tornando a busca mais natural para o usuário
 - Permitir o registro de mais de uma infração na mesma multa diretamente pelo fluxo do menu, aproveitando a estrutura já existente de `item_multa`
+- Implementação de log de auditoria para exclusões, garantindo rastreabilidade de multas removidas
 
 ---
 
